@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Server_Client_Calls</string>
+    <string name="hint_username">" insert username "</string>
+    <string name="insert_button_text">" Insert "</string>
 </resources>
