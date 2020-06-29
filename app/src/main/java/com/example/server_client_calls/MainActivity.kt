@@ -16,9 +16,11 @@ import android.util.Log
 import android.widget.*
 import androidx.lifecycle.Observer
 import androidx.work.*
+import com.bumptech.glide.Glide
 import com.google.gson.Gson
 import com.squareup.picasso.MemoryPolicy
 import com.squareup.picasso.Picasso
+import kotlinx.android.synthetic.main.activity_main.*
 
 const val TOKEN_KEY = "token"
 const val USERNAME_KEY = "username"
@@ -56,14 +58,11 @@ class MainActivity : AppCompatActivity() {
         token = sp.getString(TOKEN_KEY, null)
         init()
         initButton()
-        if(sp.getString(USERNAME_SP,null)!=null){
-            removeInsertUsernameView()
-        }
+
         if (token != null) {
-//            initView()
+            removeInsertUsernameView()
             getUserInfo(this.token!!)
         }
-//        initView()
     }
 
     private fun init() {
@@ -89,16 +88,15 @@ class MainActivity : AppCompatActivity() {
     private fun removeInsertUsernameView(){
         insertButton.visibility=View.INVISIBLE
         usernameTextView.visibility=View.INVISIBLE
+
+        insertPrettyButton.visibility=View.VISIBLE
     }
 
     private fun initButton() {
         insertButton.setOnClickListener(View.OnClickListener {
             val username = usernameTextView.text.toString()
             if (checkValidUS(username)) {
-                sp.edit().putString(USERNAME_SP, username).apply()
                 getUserToken(username)
-                removeInsertUsernameView()
-                //todo check if we need to not display button insert
             } else {
                 Toast.makeText(
                     applicationContext,
@@ -110,6 +108,7 @@ class MainActivity : AppCompatActivity() {
         insertPrettyButton.setOnClickListener(View.OnClickListener {
             showAddPrettyNameDialog(this)
         })
+        insertPrettyButton.visibility=View.INVISIBLE
     }
 
     private fun checkValidUS(username: String): Boolean {
@@ -139,14 +138,9 @@ class MainActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         if (requestCode == PERMISSION_INTERNET_ID) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Granted. Start getting the location information
-                TODO()
-            } else {
-                // the user has denied our request! =-O
+            if (!grantResults.isNotEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                 if (ActivityCompat.shouldShowRequestPermissionRationale(
-                        this, Manifest.permission.INTERNET
-                    )
+                        this, Manifest.permission.INTERNET)
                 ) {
                     // reached here? means we asked the user for this permission more than once,
                     // and they still refuse. This would be a good time to open up a dialog
@@ -167,7 +161,6 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun getUserToken(username: String) {
-        //todo loading view
         val workerRequest = OneTimeWorkRequest.Builder(GetApiUserWorker::class.java)
             .setConstraints(
                 Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
@@ -180,11 +173,8 @@ class MainActivity : AppCompatActivity() {
         WorkManager.getInstance(this).getWorkInfoByIdLiveData(workerRequest.id)
             .observe(this, Observer { workInfo ->
                 if (workInfo == null) return@Observer
-
                 Log.d("ClientServerActivity", "worker has reached state ${workInfo.state}")
-
                 if (workInfo.state == WorkInfo.State.FAILED) {
-                    // TODO: update UI for failure?
                     return@Observer
                 } else if (workInfo.state == WorkInfo.State.SUCCEEDED) {
                     // update UI for success! :)
@@ -193,11 +183,11 @@ class MainActivity : AppCompatActivity() {
                     val data_tokenRes =
                         Gson().fromJson(tokenJson, UserService.TokenResponse::class.java).data
                     this.saveToken(data_tokenRes)
-                    //todo update UI
+                    removeInsertUsernameView()
+                    getUpdateUserPrettyName("")
                     return@Observer
                 } else {
                     // not interesting, wait until the worker will reach the state we want
-                    // TODO update ui for "loading..." ?
                     return@Observer
                 }
             })
@@ -210,7 +200,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             prettyNameTextView.text = PRETTY_NAME_STR + prettyName
         }
-        prettyNameTextView.visibility = View.VISIBLE
+
 
     }
 
@@ -218,15 +208,13 @@ class MainActivity : AppCompatActivity() {
         loadingTextView.visibility = View.INVISIBLE
         updatePrettyNameUI(user.pretty_name, user.username)
         updateImgUrl(user.image_url)
+        profileImageView.visibility= View.VISIBLE
+        prettyNameTextView.visibility = View.VISIBLE
     }
 
     fun updateImgUrl(img_url: String?) {
         if (img_url!=null){
-            Picasso
-                .with(applicationContext)
-                .load(ServerHolder.BASE_URL + img_url)
-                .memoryPolicy(MemoryPolicy.NO_STORE)
-                .into(profileImg)
+            Glide.with(this).load(ServerHolder.BASE_URL + img_url).into(profileImg)
         }
     }
 
@@ -243,15 +231,12 @@ class MainActivity : AppCompatActivity() {
         WorkManager.getInstance(this).getWorkInfoByIdLiveData(workerRequest.id)
             .observe(this, Observer { workInfo ->
                 if (workInfo == null){
-                    loadingTextView.visibility = View.INVISIBLE
                     return@Observer
                 }
 
                 Log.d("ClientServerActivity", "worker has reached state ${workInfo.state}")
 
                 if (workInfo.state == WorkInfo.State.FAILED) {
-                    // TODO: update UI for failure?
-                    loadingTextView.visibility = View.INVISIBLE
                     return@Observer
                 } else if (workInfo.state == WorkInfo.State.SUCCEEDED) {
                     // update UI for success! :)
@@ -289,7 +274,6 @@ class MainActivity : AppCompatActivity() {
                 Log.d("ClientServerActivity", "worker has reached state ${workInfo.state}")
 
                 if (workInfo.state == WorkInfo.State.FAILED) {
-                    // TODO: update UI for failure?
                     return@Observer
                 } else if (workInfo.state == WorkInfo.State.SUCCEEDED) {
                     // update UI for success! :)
@@ -302,6 +286,8 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     // not interesting, wait until the worker will reach the state we want
                     loadingTextView.visibility = View.VISIBLE
+                    profileImageView.visibility= View.INVISIBLE
+                    prettyNameTextView.visibility= View.INVISIBLE
                     return@Observer
                 }
             })

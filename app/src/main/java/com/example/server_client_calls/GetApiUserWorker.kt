@@ -20,7 +20,7 @@ class GetApiUserWorker(context: Context, workerParams: WorkerParameters) :
         val response = callToSlash?.execute()
         if (response != null) {
             Log.d("GetApiUserWorker", "got response: ${response.code()}")
-            if (response.code() != 200 || !response.isSuccessful) { //todo check response.code() != 200
+            if (response.code() != 200 || !response.isSuccessful) {
                 return Result.failure()
             }
         }
@@ -45,7 +45,7 @@ class GetApiUserResWorker(context: Context, workerParams: WorkerParameters) :
         val response = callToSlash?.execute()
         if (response != null) {
             Log.d("GetApiUserResWorker", "got response: ${response.code()}")
-            if (response.code() != 200 || !response.isSuccessful) { //todo check response.code() != 200
+            if (response.code() != 200 || !response.isSuccessful) {
                 return Result.failure()
             }
         }
@@ -72,7 +72,7 @@ class GetApiUserUpdatePrettyWorker(context: Context, workerParams: WorkerParamet
         val response = callToSlash?.execute()
         if (response != null) {
             Log.d("UpdatePrettyWorker", "got response: ${response.code()}")
-            if (response.code() != 200 || !response.isSuccessful) { //todo check response.code() != 200
+            if (response.code() != 200 || !response.isSuccessful) {
                 return Result.failure()
             }
         }
