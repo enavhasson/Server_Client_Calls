@@ -14,9 +14,9 @@ public interface UserService {
 
     //todo basic UserService- template
     class User {
-        public String username;
-        public String pretty_name;
-        public String image_url;
+        public @Nullable  String username;
+        public @Nullable String pretty_name;
+        public @Nullable String image_url;
     }
     class TokenResponse{
         public String data;
@@ -26,11 +26,11 @@ public interface UserService {
         public User data;
     }
 
-    @GET("/user/{username}/token/") //READ
+    @GET("/users/{username}/token/") //READ
     Call<TokenResponse> getUserToken(@Path("username") String username);
 
     @GET("/user/") //READ
-    Call<UserResponse> getUserObj(@Header("Authorization") String token);
+    Call<UserResponse> getUserRes(@Header("Authorization") String token);
 
     @POST("/user") //CREATE
     Call<TokenResponse> createUser(@Body User user);
