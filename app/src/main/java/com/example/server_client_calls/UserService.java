@@ -1,22 +1,42 @@
 package com.example.server_client_calls;
 
+import org.jetbrains.annotations.Nullable;
+
+import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
+import retrofit2.http.Header;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
 
 public interface UserService {
+
     //todo basic UserService- template
     class User {
         public String username;
+        public String pretty_name;
+        public String image_url;
+    }
+    class TokenResponse{
+        public String data;
     }
 
+    class UserResponse{
+        public User data;
+    }
+
+    @GET("/user/{username}/token/") //READ
+    Call<TokenResponse> getUserToken(@Path("username") String username);
+
+    @GET("/user/") //READ
+    Call<UserResponse> getUserObj(@Header("Authorization") String token);
+
     @POST("/user") //CREATE
-    void createUser(@Body User user);
+    Call<TokenResponse> createUser(@Body User user);
 
     @GET("/user/{userId}")//READ
-    User getUser(@Path("userId") String userId,@Body User user);
+    User getUser(@Path("username") String username,@Body User user);
 
     @POST("/user") //CREATE
     void updateUser(@Body User user); //todo

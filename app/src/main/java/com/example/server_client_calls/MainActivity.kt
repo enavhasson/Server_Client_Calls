@@ -11,14 +11,26 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import androidx.work.OneTimeWorkRequest
+
+import android.util.Log
+import androidx.lifecycle.Observer
+import androidx.work.*
+import com.google.gson.Gson
+import java.util.*
+
+const val TOKEN_KEY = "token"
+const val USERNAME_KEY = "username"
 
 class MainActivity : AppCompatActivity() {
     private val PERMISSION_INTERNET_ID = 1
     private val REGEX_VALID_USERNAME = "[a-zA-Z0-9]+"
     private val INVALD_USERNAME_MES =
         "username input ,allowed only letters and digits ,no whitespaces or special characters!!"
-    private val USERNAME_SP="username"
+    private val USERNAME_SP = "username"
     private lateinit var sp: SharedPreferences
+    private var token: String? = null
+
     private val SP_NAME = "main"
     private lateinit var usernameTextView: TextView
     private lateinit var insertButton: Button
@@ -29,6 +41,7 @@ class MainActivity : AppCompatActivity() {
 
         intentPermission()
         sp = getSharedPreferences(SP_NAME, Context.MODE_PRIVATE)
+        token = sp.getString(TOKEN_KEY, null)
         initView()
         initButton()
     }
@@ -41,10 +54,9 @@ class MainActivity : AppCompatActivity() {
     private fun initButton() {
         insertButton.setOnClickListener(View.OnClickListener {
             if (checkValidUS(usernameTextView.text.toString())) {
-                sp.edit().putString(USERNAME_SP,usernameTextView.text.toString()).apply()
+                sp.edit().putString(USERNAME_SP, usernameTextView.text.toString()).apply()
                 login()
-            }
-            else{
+            } else {
                 Toast.makeText(
                     applicationContext,
                     INVALD_USERNAME_MES,
@@ -105,4 +117,49 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+    private fun saveToken(token: String) {
+        this.token = token
+        sp.edit().putString(TOKEN_KEY, token).apply()
+    }
+
+
+    private fun getUserToken(username: String) {
+        //todo loading view
+        val workerRequest = OneTimeWorkRequest.Builder(GetApiUserWorker::class.java)
+            .setConstraints(
+                Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+            )
+            .setInputData(Data.Builder().putString(USERNAME_KEY, username).build())
+            .build()
+
+        WorkManager.getInstance(this).enqueue(workerRequest)
+
+        WorkManager.getInstance(this).getWorkInfoByIdLiveData(workerRequest.id)
+            .observe(this, Observer { workInfo ->
+                if (workInfo == null) return@Observer
+
+                Log.d("ClientServerActivity", "worker has reached state ${workInfo.state}")
+
+                if (workInfo.state == WorkInfo.State.FAILED) {
+                    // TODO: update UI for failure?
+                    return@Observer
+                } else if (workInfo.state == WorkInfo.State.SUCCEEDED) {
+                    // TODO: update UI for success! :)
+                    val tokenJson = workInfo.outputData.getString(TOKEN_KEY)
+                    Log.d("getUserToken_liveData", "user : $username,token : $tokenJson")
+                    val data_tokenRes =
+                        Gson().fromJson(tokenJson, UserService.TokenResponse::class.java).data
+                    this.saveToken(data_tokenRes)
+                    //todo upsate UI
+                    return@Observer
+                } else {
+                    // not interesting, wait until the worker will reach the state we want
+                    // TODO update ui for "loading..." ?
+                    return@Observer
+                }
+            })
+    }
+
+}
 }
