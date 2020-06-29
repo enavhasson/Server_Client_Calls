@@ -8,8 +8,8 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ServerHolder {
-//    private static String BASE_URL= "https://hujipostpc2019.pythonanywhere.com";
-    private static String BASE_URL= "http://10.0.0.9:5678";//todo debug
+//    public static String BASE_URL= "https://hujipostpc2019.pythonanywhere.com";
+    public static String BASE_URL= "http://10.0.0.9:5678";//todo debug
     private static ServerHolder instance = null;
 
     synchronized static ServerHolder getInstance(){

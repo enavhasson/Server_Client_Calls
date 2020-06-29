@@ -29,9 +29,11 @@
         android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.493"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/loadingTextView"
-        app:layout_constraintVertical_bias="0.225" />
+        app:layout_constraintVertical_bias="0.168" />
+
 
     <TextView
         android:id="@+id/prettyNameTV"
@@ -52,9 +54,32 @@
         android:text="@string/insert_button_text"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.749"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/prettyNameTV"
-        app:layout_constraintVertical_bias="0.181" />
+        app:layout_constraintVertical_bias="0.0" />
+
+    <Button
+        android:id="@+id/insertPrettyNameButton"
+        android:layout_width="149dp"
+        android:layout_height="46dp"
+        android:text="SET Pretty Name"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/insert_button"
+        app:layout_constraintHorizontal_bias="0.67"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/insert_button"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <ImageView
+        android:id="@+id/profileImageView"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        app:layout_constraintBottom_toTopOf="@+id/username_TV"
+        app:layout_constraintEnd_toStartOf="@+id/loadingTextView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@mipmap/ic_launcher" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
