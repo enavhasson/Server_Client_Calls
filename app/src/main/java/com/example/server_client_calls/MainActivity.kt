@@ -53,9 +53,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun initButton() {
         insertButton.setOnClickListener(View.OnClickListener {
-            if (checkValidUS(usernameTextView.text.toString())) {
-                sp.edit().putString(USERNAME_SP, usernameTextView.text.toString()).apply()
-                login()
+            val username=usernameTextView.text.toString()
+            if (checkValidUS(username)) {
+                sp.edit().putString(USERNAME_SP,username).apply()
+                getUserToken(username)
             } else {
                 Toast.makeText(
                     applicationContext,
