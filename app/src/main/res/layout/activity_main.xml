@@ -65,7 +65,7 @@
         android:id="@+id/insertPrettyNameButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="UPDATE Pretty Name"
+        android:text="@string/update_pretty_name"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.497"
@@ -75,8 +75,8 @@
 
     <ImageView
         android:id="@+id/profileImageView"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
         android:layout_marginStart="76dp"
         android:layout_marginTop="36dp"
         app:layout_constraintStart_toStartOf="parent"

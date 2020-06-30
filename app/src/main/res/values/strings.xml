@@ -4,4 +4,5 @@
     <string name="insert_button_text">" Insert "</string>
     <string name="loadingTextViewStr">loading...</string>
     <string name="prettyNameUI">welcome again,</string>
+    <string name="update_pretty_name">UPDATE Pretty Name</string>
 </resources>
