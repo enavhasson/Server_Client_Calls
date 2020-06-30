@@ -2,7 +2,6 @@ package com.example.server_client_calls;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -12,7 +11,7 @@ public class ServerHolder {
     public static String BASE_URL= "http://10.0.0.9:5678";//todo debug
     private static ServerHolder instance = null;
 
-    synchronized static ServerHolder getInstance(){
+    public synchronized static ServerHolder getInstance(){
         if (instance == null) {
             instance = new ServerHolder();
         }

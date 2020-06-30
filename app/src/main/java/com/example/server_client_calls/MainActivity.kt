@@ -16,14 +16,12 @@ import androidx.lifecycle.Observer
 import androidx.work.*
 import com.bumptech.glide.Glide
 import com.google.gson.Gson
-import kotlinx.android.synthetic.main.activity_main.*
+import com.example.server_client_calls.getApi.*
 
 const val TOKEN_KEY = "token"
 const val USERNAME_KEY = "username"
 const val PRETTY_NAME_KEY = "pretty_name"
 const val IMG_URL_KEY = "image_url"
-const val IS_PRETTY_KEY = "true"
-
 const val USER_INFO_KEY = "user_info"
 
 class MainActivity : AppCompatActivity() {
@@ -33,7 +31,6 @@ class MainActivity : AppCompatActivity() {
         "username input ,allowed only letters and digits ,no whitespaces or special characters!!"
     private val PRETTY_NAME_STR = "welcome again, "
     private val PRETTY_NAME_STR_NULL = "welcome "
-    private val USERNAME_SP = "username"
 
     private val CRAB_IMG_URL = "/images/crab.png"
     private val UNICORN_IMG_URL = "/images/unicorn.png"
@@ -41,13 +38,15 @@ class MainActivity : AppCompatActivity() {
     private val ROBOT_IMG_URL = "/images/robot.png"
     private val OCTOPUS_IMG_URL = "/images/octopus.png"
     private val FROG_IMG_URL = "/images/frog.png"
-    private val IMAGES = arrayOf("/images/crab.png", "/images/unicorn.png", "/images/alien.png",
-        "/images/robot.png", "/images/octopus.png", "/images/frog.png")
+    private val IMAGES = arrayOf(
+        "/images/crab.png", "/images/unicorn.png", "/images/alien.png",
+        "/images/robot.png", "/images/octopus.png", "/images/frog.png"
+    )
+    private val SP_NAME = "main"
 
     private lateinit var sp: SharedPreferences
     private var token: String? = null
 
-    private val SP_NAME = "main"
     private lateinit var usernameTextView: EditText
     private lateinit var loadingTextView: TextView
     private lateinit var prettyNameTextView: TextView
@@ -87,18 +86,13 @@ class MainActivity : AppCompatActivity() {
         profileImg.visibility = View.INVISIBLE
     }
 
-    private fun initView() {
-        loadingTextView.visibility = View.INVISIBLE
-        prettyNameTextView.visibility = View.INVISIBLE
-    }
-
-    fun showImagesUI(){
-        showImgUI(ServerHolder.BASE_URL+ALIEN_IMG_URL,findViewById(R.id.alien_image))
-        showImgUI(ServerHolder.BASE_URL+CRAB_IMG_URL,findViewById(R.id.crab_image))
-        showImgUI(ServerHolder.BASE_URL+FROG_IMG_URL,findViewById(R.id.frog_image))
-        showImgUI(ServerHolder.BASE_URL+OCTOPUS_IMG_URL,findViewById(R.id.octopus_image))
-        showImgUI(ServerHolder.BASE_URL+ROBOT_IMG_URL,findViewById(R.id.robot_image))
-        showImgUI(ServerHolder.BASE_URL+UNICORN_IMG_URL,findViewById(R.id.unicorn_image))
+    private fun showImagesUI() {
+        showImgUI(ServerHolder.BASE_URL + ALIEN_IMG_URL, findViewById(R.id.alien_image))
+        showImgUI(ServerHolder.BASE_URL + CRAB_IMG_URL, findViewById(R.id.crab_image))
+        showImgUI(ServerHolder.BASE_URL + FROG_IMG_URL, findViewById(R.id.frog_image))
+        showImgUI(ServerHolder.BASE_URL + OCTOPUS_IMG_URL, findViewById(R.id.octopus_image))
+        showImgUI(ServerHolder.BASE_URL + ROBOT_IMG_URL, findViewById(R.id.robot_image))
+        showImgUI(ServerHolder.BASE_URL + UNICORN_IMG_URL, findViewById(R.id.unicorn_image))
     }
 
     private fun initImages() {
@@ -123,16 +117,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
     private fun removeInsertUsernameView() {
-        insertButton.visibility = View.INVISIBLE
-        usernameTextView.visibility = View.INVISIBLE
+        insertButton.visibility = View.GONE
+        usernameTextView.visibility = View.GONE
         prettyNameTextView.visibility = View.VISIBLE
         insertPrettyButton.visibility = View.VISIBLE
     }
 
     private fun initButton() {
-        insertButton.setOnClickListener(View.OnClickListener {
+        insertButton.setOnClickListener {
             val username = usernameTextView.text.toString()
             if (checkValidUS(username)) {
                 getUserToken(username)
@@ -144,17 +137,34 @@ class MainActivity : AppCompatActivity() {
                     Toast.LENGTH_LONG
                 ).show()
             }
-        })
-        insertPrettyButton.setOnClickListener(View.OnClickListener {
+        }
+        insertPrettyButton.setOnClickListener {
             showAddPrettyNameDialog(this)
-        })
+        }
         insertPrettyButton.visibility = View.INVISIBLE
+    }
+
+    private fun showAddPrettyNameDialog(c: Context) {
+        val inputText = EditText(c)
+        val dialog = AlertDialog.Builder(c)
+            .setView(inputText)
+            .setPositiveButton("Set") { _, _ ->
+                val input = inputText.text.toString()
+                if (input.isNotEmpty()) {
+                    updateUserPrettyName(input)
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .setTitle("input a new pretty name")
+        dialog.create()
+        dialog.show()
     }
 
     private fun checkValidUS(username: String): Boolean {
         return username.matches(Regex(REGEX_VALID_USERNAME))
     }
 
+    /**Permission*/
     private fun intentPermission() {
         if (!checkPermission()) {
             ActivityCompat.requestPermissions(
@@ -178,7 +188,7 @@ class MainActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         if (requestCode == PERMISSION_INTERNET_ID) {
-            if (!grantResults.isNotEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+            if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                 if (ActivityCompat.shouldShowRequestPermissionRationale(
                         this, Manifest.permission.INTERNET
                     )
@@ -195,14 +205,44 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
     private fun saveToken(token: String) {
         this.token = token
         sp.edit().putString(TOKEN_KEY, token).apply()
     }
 
+    @SuppressLint("SetTextI18n")
+    private fun updatePrettyNameUI(user: UserService.User) {
+        if (user.pretty_name.isNullOrEmpty()) {
+            prettyNameTextView.text = PRETTY_NAME_STR_NULL + user.username
+        } else {
+            prettyNameTextView.text = PRETTY_NAME_STR + user.pretty_name
+        }
+        loadingTextView.visibility = View.INVISIBLE
+    }
+
+    //update UI after update and load user
+    private fun updateUI(user: UserService.User) {
+        updateImgUrlUI(user.image_url)
+        updatePrettyNameUI(user)
+        loadingTextView.visibility = View.INVISIBLE
+        prettyNameTextView.visibility = View.VISIBLE
+        profileImg.visibility = View.VISIBLE
+
+    }
+
+    private fun showImgUI(img_url: String, intoImage: ImageView) {
+        Glide.with(this).load(img_url).into(intoImage)
+    }
+
+    private fun updateImgUrlUI(img_url: String?) {
+        if (img_url != null) {
+            showImgUI(ServerHolder.BASE_URL + img_url, profileImg)
+        }
+    }
 
     private fun getUserToken(username: String) {
-        val workerRequest = OneTimeWorkRequest.Builder(GetApiUserWorker::class.java)
+        val workerRequest = OneTimeWorkRequest.Builder(UserWorker::class.java)
             .setConstraints(
                 Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
             )
@@ -221,11 +261,11 @@ class MainActivity : AppCompatActivity() {
                     // update UI for success! :)
                     val tokenJson = workInfo.outputData.getString(TOKEN_KEY)
                     Log.d("getUserToken_liveData", "user : $username,token : $tokenJson")
-                    val data_tokenRes =
+                    val dataToken =
                         Gson().fromJson(tokenJson, UserService.TokenResponse::class.java).data
-                    this.saveToken(data_tokenRes)
+                    this.saveToken(dataToken)
                     removeInsertUsernameView()
-                    getUpdateUserPrettyName("")
+                    updateUserPrettyName("")
                     return@Observer
                 } else {
                     // not interesting, wait until the worker will reach the state we want
@@ -234,38 +274,8 @@ class MainActivity : AppCompatActivity() {
             })
     }
 
-    @SuppressLint("SetTextI18n")
-    private fun updatePrettyNameUI(user: UserService.User) {
-        if (user.pretty_name.isNullOrEmpty()) {
-            prettyNameTextView.text = PRETTY_NAME_STR_NULL + user.username
-        } else {
-            prettyNameTextView.text = PRETTY_NAME_STR + user.pretty_name
-        }
-        loadingTextView.visibility = View.INVISIBLE
-    }
-
-
-    fun updateUI(user: UserService.User) {
-        updateImgUrl(user.image_url)
-        updatePrettyNameUI(user)
-        loadingTextView.visibility = View.INVISIBLE
-        prettyNameTextView.visibility = View.VISIBLE
-        profileImg.visibility = View.VISIBLE
-
-    }
-
-    private fun showImgUI(img_url: String, intoImage: ImageView) {
-        Glide.with(this).load(img_url).into(intoImage)
-    }
-
-    fun updateImgUrl(img_url: String?) {
-        if (img_url != null) {
-            showImgUI(ServerHolder.BASE_URL + img_url, profileImg)
-        }
-    }
-
     private fun getUserInfo(token: String) {
-        val workerRequest = OneTimeWorkRequest.Builder(GetApiUserResWorker::class.java)
+        val workerRequest = OneTimeWorkRequest.Builder(UserResWorker::class.java)
             .setConstraints(
                 Constraints.Builder().setRequiredNetworkType
                     (NetworkType.CONNECTED).build()
@@ -301,8 +311,8 @@ class MainActivity : AppCompatActivity() {
             })
     }
 
-    private fun getUpdateUserPrettyName(newPrettyName: String) {
-        val workerRequest = OneTimeWorkRequest.Builder(GetApiUserUpdatePrettyWorker::class.java)
+    private fun updateUserPrettyName(newPrettyName: String) {
+        val workerRequest = OneTimeWorkRequest.Builder(UpdatePrettyWorker::class.java)
             .setConstraints(
                 Constraints.Builder().setRequiredNetworkType
                     (NetworkType.CONNECTED).build()
@@ -319,15 +329,17 @@ class MainActivity : AppCompatActivity() {
                 if (workInfo == null) return@Observer
                 Log.d("ClientServerActivity", "worker has reached state ${workInfo.state}")
 
-                if (workInfo.state == WorkInfo.State.FAILED) {
-                    return@Observer
-
-                } else if (workInfo.state == WorkInfo.State.SUCCEEDED) {
+                if (workInfo.state == WorkInfo.State.FAILED) return@Observer
+                if (workInfo.state == WorkInfo.State.SUCCEEDED) {
                     // update UI for success! :)
                     val userInfoJson = workInfo.outputData.getString(USER_INFO_KEY)
                     Log.d("getUserInfo_PrettyName", "userInfo : $userInfoJson")
                     val dataUserInfo =
                         Gson().fromJson(userInfoJson, UserService.UserResponse::class.java).data
+                    if (dataUserInfo == null) {
+                        Log.e("getUserInfo_PrettyName", "null object")
+                        return@Observer
+                    }
                     updateUI(dataUserInfo)
                     return@Observer
                 } else {
@@ -364,9 +376,12 @@ class MainActivity : AppCompatActivity() {
                     val userInfoJson = workInfo.outputData.getString(USER_INFO_KEY)
                     Log.d("UpdateUserImgUrl", "userInfo : $userInfoJson")
                     val imgUrl =
-                        Gson().fromJson(userInfoJson, UserService.UserResponse::class.java).data.image_url
+                        Gson().fromJson(
+                            userInfoJson,
+                            UserService.UserResponse::class.java
+                        ).data.image_url
                     loadingTextView.visibility = View.INVISIBLE
-                    updateImgUrl(imgUrl)
+                    updateImgUrlUI(imgUrl)
                     return@Observer
                 } else {
                     // not interesting, wait until the worker will reach the state we want
@@ -374,23 +389,6 @@ class MainActivity : AppCompatActivity() {
                     return@Observer
                 }
             })
-    }
-
-
-    private fun showAddPrettyNameDialog(c: Context) {
-        val inputText = EditText(c)
-        val dialog = AlertDialog.Builder(c)
-            .setView(inputText)
-            .setPositiveButton("Set") { _, _ ->
-                val input = inputText.text.toString()
-                if (input.isNotEmpty()) {
-                    getUpdateUserPrettyName(input)
-                }
-            }
-            .setNegativeButton("Cancel", null)
-            .setTitle("input a new pretty name")
-        dialog.create()
-        dialog.show()
     }
 
 }
