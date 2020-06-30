@@ -1,0 +1,14 @@
+As a client, at the first time you got a token. You have 2 options:
+a. save the token locally (for example in a file or in SP)
+b. use this token only in this current app-launch, and re-request a token from the server each time the app launches again.
+
+option a-
+pro: less traffic, the requsets to the server are only changes the user made.  
+con: when the server change the data and we want to send requset to the server 
+the old token will be send so we can get an error, or invalid data (example, data from another user , data we don't expect.)
+wil return as a result .  
+
+option b-
+pro:the token is the most update . every time the server will preform update we will change the UI and the data accordingly
+con: can create many request, more traffic
+
